@@ -67,6 +67,12 @@ app.route('/')
 
 		destination = process.cwd() + "/tmp/" + pluginSlug + '-' + new Date().getTime();
 
+    var toStudlyCase = function(str) {
+      return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(letter) {
+        return letter.toUpperCase();
+      }).replace(/\-+/g, '');;
+    };
+
 		fs.copy( origin, destination, function(err){
 
 			if (err){
@@ -95,13 +101,25 @@ app.route('/')
 
 					var newName;
 
-					var re = /plugin-name/gi;
+          var re = /plugin-name/gi;
 
-					newName = file.replace(re, pluginSlug);
+          newName = file.replace(re, pluginSlug);
 
-					fs.renameSync( file, newName);
+          fs.renameSync(file, newName);
+        });
 
-				});
+        files.forEach(function(file){
+
+          var newName;
+
+          if (fs.existsSync(file)) {
+            var re = /PluginName/gi;
+
+            newName = file.replace(re, toStudlyCase(pluginSlug));
+
+            fs.renameSync( file, newName);
+          }
+        });
 
 				// Plugin URI
 				replace({
@@ -238,6 +256,21 @@ app.route('/')
 
 				});
 
+        //find Plugin StudlyCase slug
+        replace({
+
+          regex: "PluginName",
+
+          replacement: toStudlyCase(pluginSlug),
+
+          paths:[destination + '/' + pluginSlug],
+
+          recursive: true,
+
+          silent: true
+
+        });
+
 				//Replace done ZIP it
 
 				var zip = new EasyZip();
@@ -285,7 +318,7 @@ clean.start();
  */
 var getSourceCode = function(){
 
-	var repo = {user: 'DevinVinson', repo: 'WordPress-Plugin-Boilerplate', ref: 'master'};
+	var repo = {user: 'Gloeckchen', repo: 'WordPress-Plugin-Boilerplate', ref: 'composer'};
 
 	var destination = process.cwd() + "/source/";
 
